@@ -1,2 +1,7 @@
 #!/usr/bin/env bash
+# Define the path to your Apache log file
 
+log_file="/var/log/apache2/access.log"
+
+# Use awk to group visitors by IP and HTTP status code
+awk '{ip[$1][$9]++} END {for (visitor in ip) for (status in ip[visitor]) print "Visitor IP:", visitor, "HTTP Status Code:", status, "Count:", ip[visitor][status]}' "$log_file"

@@ -16,4 +16,3 @@ while [ $i -le 20 ]; do
 
     let i+=1
 done
-
