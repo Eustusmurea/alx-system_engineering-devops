@@ -6,12 +6,6 @@
 * Understand a famous developer joke: "Use a regular expression against a problem: [now you have 2 problems](https://blog.codinghorror.com/regular-expressions-now-you-have-two-problems/)"
 * Learn by doing with [https://www.regexone.com/](https://www.regexone.com/)
 
-
-
-For this project, you have to build your regular expression using Oniguruma, a regular expression library that which is used by Ruby by default. Note that other regular expression libraries have sometimes different properties.
-
-Because the focus of this exercise is to play with regular expressions (regex), here is the Ruby code that you should use, just replace the regexp part, meaning the code in beetween the `//`:
-
 ```
 sylvain@ubuntu$ cat example.rb
 #!/usr/bin/env ruby
