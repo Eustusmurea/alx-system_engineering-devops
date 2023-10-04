@@ -1,7 +1,4 @@
-[![Holberton logo](https://www.holbertonschool.com/assets/holberton-logo-1cc451260ca3cd297def53f2250a9794810667c7ca7b5fa5879a569a457bf16f.png)](https://www.holbertonschool.com/)
 # 0x07. Networking basics #0
-
-### Author: Elaine Yeung [<img src="https://user-images.githubusercontent.com/23224088/27935507-4e614b68-6260-11e7-8b20-d0352ef3ff53.png" height="18px"/>](https://twitter.com/egsy) 
 
 ## Synopsis
 This project introduces the concepts of **server management** in software development.
@@ -70,10 +67,6 @@ man: `netstat`, `ping`
 
 ### Project Requirements
 #### Bash 
--   Allowed editors: `vi`, `vim`, `emacs`
--   All your Bash script files will be interpreted on Ubuntu 14.04 LTS
--   All your files should end with a new line
--   A `README.md` file, at the root of the folder of the project, is mandatory
 -   All your Bash script files must be executable
 -   Your Bash script must pass `shellcheck` without any error
 -   The first line of all your Bash scripts should be exactly `#!/usr/bin/env bash`
@@ -90,4 +83,3 @@ Task # | Type | Short description | File name and link |
 3 | **Mandatory** | | [3-UDP_and_TCP](./3-UDP_and_TCP)
 4 | **Mandatory** | | [4-TCP_and_UDP_ports](./4-TCP_and_UDP_ports)
 5 | **Mandatory** | | [5-is_the_host_on_the_network](./5-is_the_host_on_the_network)
-
