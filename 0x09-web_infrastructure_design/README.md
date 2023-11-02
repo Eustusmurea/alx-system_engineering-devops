@@ -1,5 +1,4 @@
-
-# 0x0A. Web infrastructure design 
+## Web infrastructure design 
 ## Synopsis
 This project applies newly learned concepts about web infrastructure.
 
