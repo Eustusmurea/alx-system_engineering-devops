@@ -1,44 +1,52 @@
 #!/usr/bin/env bash
-# Configure my domain zone:
-# www --> 914-lb-01 3.83.192.251
-# web-01 --> 914-web-01 18.205.38.219
-# web-02 --> 914-web-02 34.138.16.188
 
-# -- To be evaluated --
-# domain_information () {
-#     line=$(dig "$2"."$1" | grep -A1 'ANSWER SECTION:' | tr '\t' '\n' | tail -2 | tr '\n' ' ')
-#     echo "$2 $line" | awk '{print "The subdomain " $1 " is a " $2 " record and points to " $3}'
-# }
+configure_domain() {
+    local domain="$1"
 
-# if [ "$#" == 1 ]
-# then
-#   domain_information "$1" "www"
-#   domain_information "$1" "lb-01"
-#   domain_information "$1" "web-01"
-#   domain_information "$1" "web-02"
-# elif [ "$#" == 2 ]
-# then
-#   domain_information "$1" "$2"
-# fi
-#-- To be evaluated --
+    # Replace these with your actual IP addresses
+    web_01_ip="52.206.79.51"
+    web_02_ip="52.87.231.218"
+    lb_01_ip="54.174.244.191"
 
-subdomains_all=( "www" "lb-01" "web-01" "web-02" )
+    # Add subdomain www pointing to lb-01 IP
+    echo "www.$domain IN A $lb_01_ip" >> /etc/bind/db.$domain
 
-runDig () {
-    subdomain=$1
-    domain=$2
+    # Add subdomain lb-01 pointing to lb-01 IP
+    echo "lb-01.$domain IN A $lb_01_ip" >> /etc/bind/db.$domain
 
-    dig "$subdomain.$domain" | grep -A1 'ANSWER SECTION:' | tail -1 | awk -v s="$subdomain" 'BEGIN { FS = " " } ; { print "The subdomain " s " is a " $4 " record and points to " $5 }'
+    # Add subdomain web-01 pointing to web-01 IP
+    echo "web-01.$domain IN A $web_01_ip" >> /etc/bind/db.$domain
+
+    # Add subdomain web-02 pointing to web-02 IP
+    echo "web-02.$domain IN A $web_02_ip" >> /etc/bind/db.$domain
+
+    # Reload DNS configuration
+    service bind9 reload
 }
 
-if [ $# -eq 1 ]; then
+display_info() {
+    local subdomain="$1"
+    local domain="$2"
+
+    # Use dig to get DNS information
+    local result=$(dig +short "$subdomain.$domain")
+
+    if [ -n "$result" ]; then
+        # Parse the result using awk
+        awk -v sub="$subdomain" 'BEGIN { FS = " " } ; { print "The subdomain " sub " is a " $4 " record and points to " $5 }' <<< "$result"
+    fi
+}
+
+if [ "$#" == 1 ]; then
     domain="$1"
-    for i in "${subdomains_all[@]}"
-    do
-	runDig "$i" "$domain"
+    subdomains=("www" "lb-01" "web-01" "web-02")
+
+    for sub in "${subdomains[@]}"; do
+        display_info "$sub" "$domain"
     done
-elif [ $# -eq 2 ]; then
+elif [ "$#" == 2 ]; then
     domain="$1"
     subdomain="$2"
-    runDig "$subdomain" "$domain"
+    display_info "$subdomain" "$domain"
 fi
+
