@@ -1,1 +1,3 @@
-opendatainc.tech
+#!/bin/bash
+
+echo "opendatainc.tech"

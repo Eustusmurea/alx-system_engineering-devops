@@ -1,7 +1,31 @@
 #!/usr/bin/env bash
 # Fixes the issue with the server
-chmod 644 /etc/nginx/nginx.conf
-sed -Ei 's/\s*#?\s*user .*/user nginx;/' /etc/nginx/nginx.conf
-sed -Ei 's/(listen (\[::\]:)?80) /\180 /' /etc/nginx/sites-enabled/default
+
+# Update the paths and user based on your Nginx installation
+nginx_conf="/etc/nginx/nginx.conf"
+default_site="/etc/nginx/sites-enabled/default"
+nginx_user="nginx"
+
+# Check if the "nginx" user exists
+if ! id -u "$nginx_user" >/dev/null 2>&1; then
+    echo "Error: User $nginx_user does not exist."
+    exit 1
+fi
+
+# Fix Nginx configuration
+if [ -e "$nginx_conf" ]; then
+    chmod 644 "$nginx_conf"
+    sed -Ei 's/\s*#?\s*user .*/user '"$nginx_user"';/' "$nginx_conf"
+fi
+
+# Fix default site configuration
+if [ -e "$default_site" ]; then
+    sed -Ei 's/(listen (\[::\]:)?80) /\180 /' "$default_site"
+fi
+
+# Kill Apache if it is running (if necessary)
 pkill apache2
-su nginx -s /bin/bash -c 'service nginx restart'
+
+# Restart Nginx
+su "$nginx_user" -s /bin/bash -c 'service nginx restart'
+
