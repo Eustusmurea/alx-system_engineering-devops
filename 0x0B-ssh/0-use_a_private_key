@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
-# Connects to server 18.205.38.219 with key in ~/.ssh/school
+# Connects to server with key in ~/.ssh/school
 
+# Set the correct permissions for the private key
+chmod 600 ~/.ssh/school
+
+# Connect to the server using SSH
 ssh -i ~/.ssh/school ubuntu@52.206.79.51
