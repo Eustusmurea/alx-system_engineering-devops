@@ -1,0 +1,25 @@
+User Accessing www.foobar.comUser Action: A user types www.foobar.com into their browser and presses Enter.
+DNS Resolution:The browser queries a DNS resolver to translate www.foobar.com into an IP address.
+The DNS resolver returns the IP address 8.8.8.8, associated with the www A record for foobar.com.
+
+HTTP Request:The browser sends an HTTP/HTTPS request to the server at 8.8.8.8 over the internet using TCP/IP.
+
+Server Processing:The server, running Nginx, receives the request.
+Nginx routes the request to the application server (e.g., PHP-FPM) if dynamic content is needed.
+The application server processes the request using the application files (e.g., PHP code).
+If required, the application server queries the MySQL database for data (e.g., user profiles, posts).
+The application server generates a response (e.g., HTML page), which Nginx sends back to the user’s browser.
+
+Response Display:The browser renders the response (e.g., the webpage) for the user.
+
+[User's Browser] <--- Internet (TCP/IP, HTTP/HTTPS) ---> [Server: 8.8.8.8]
+                                                        |
+                                                        | (Nginx Web Server)
+                                                        |
+                                                        |---> [Application Server (PHP-FPM)]
+                                                        |      |
+                                                        |      |---> [Application Files (PHP Code)]
+                                                        |      |
+                                                        |      |---> [MySQL Database]
+                                                        |
+                                                        [Operating System: Linux]

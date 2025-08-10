@@ -1,0 +1,66 @@
+components
+Load Balancer:Distributes incoming HTTPS traffic across the three servers.
+Terminates SSL to serve www.foobar.com over HTTPS using a single SSL certificate.
+Configured to route traffic to Servers 1, 2, and 3.
+
+Firewalls:Firewall 1: Positioned between the Internet and the Load Balancer to filter incoming traffic.
+Firewall 2, 3, 4: Each placed between the Load Balancer and Servers 1, 2, and 3, respectively, to filter traffic to individual servers.
+
+Servers (1, 2, 3):Each runs a web server (e.g., Nginx), an application server (e.g., Python Flask), and a MySQL database.
+Server 1 and 2: MySQL configured as read-only replicas.
+Server 3: MySQL configured as the primary database accepting writes.
+Each server has a Sumo Logic monitoring client installed for data collection.
+
+SSL Certificate:Installed on the Load Balancer to enable HTTPS for www.foobar.com.
+
+Monitoring Clients
+Sumo Logic agents installed on Servers 1, 2, and 3 to collect logs and metrics (e.g., CPU usage, request rates, database performance).
+
+Explanations of Components and Their PurposeWhy Add Each Element:Load Balancer: Distributes traffic to ensure high availability, scalability, and load sharing across servers. It also centralizes SSL termination for easier certificate management.
+Firewalls (1, 2, 3, 4): Protect the infrastructure by filtering malicious traffic and controlling access. Firewall 1 guards the entry point, while Firewalls 2, 3, and 4 provide per-server security.
+SSL Certificate: Enables HTTPS to secure data in transit for www.foobar.com, ensuring encryption and trust.
+Monitoring Clients (Sumo Logic): Collect system and application metrics/logs to monitor performance, detect issues, and ensure uptime.
+Servers (1, 2, 3): Host the web, application, and database layers to serve www.foobar.com. Separating read and write database operations improves performance.
+MySQL Configuration: One primary (write) and two replicas (read) to distribute database load and improve redundancy.
+
+What Are Firewalls For:Firewalls act as security barriers, controlling incoming and outgoing traffic based on predefined rules. They block unauthorized access, mitigate DDoS attacks, and protect against vulnerabilities by filtering traffic at the network level. For example, Firewall 1 might allow only HTTPS traffic (port 443) from the Internet, while Firewalls 2, 3, and 4 restrict traffic to specific server ports (e.g., 80 for web, 3306 for MySQL).
+
+Why Traffic Is Served Over HTTPS
+HTTPS (using an SSL certificate) encrypts data between the client and server, protecting sensitive information (e.g., user credentials, personal data) from interception. It also ensures data integrity, prevents tampering, and builds user trust by verifying the website’s authenticity. For www.foobar.com, HTTPS is critical for compliance with security standards (e.g., GDPR, PCI DSS) and SEO benefits.
+
+What Monitoring Is Used For:Monitoring tracks the health, performance, and security of the infrastructure. It helps detect issues like server downtime, high latency, or resource exhaustion, enabling proactive fixes. For www.foobar.com, Sumo Logic collects logs and metrics to provide insights into user traffic, errors, and system performance.
+
+How the Monitoring Tool Collects Data
+Sumo Logic agents are installed on each server (1, 2, 3). These agents collect:Logs: Web server logs (e.g., Nginx access/error logs), application logs, and MySQL query logs.
+Metrics: System metrics (CPU, memory, disk) and application metrics (response times, error rates).
+Events: Security events or anomalies (e.g., failed login attempts).
+
+The agents send data to the Sumo Logic cloud platform via secure HTTPS connections, where it’s aggregated, analyzed, and visualized in dashboards. For example, logs are parsed to identify 5xx errors, and metrics track server uptime.
+
+Monitoring Web Server QPS (Queries Per Second)
+To monitor QPS for the web server (e.g., Nginx):Configure Sumo Logic: Set up the agent to parse Nginx access logs, which record every HTTP request.
+Extract QPS: Create a Sumo Logic query to count requests over a time interval (e.g., source=nginx_access | timeslice 1s | count by _timeslice). This calculates requests per second.
+Visualize: Display QPS in a dashboard with time-series graphs to track trends or spikes.
+Alerts: Set up alerts in Sumo Logic to notify if QPS exceeds a threshold (e.g., indicating a traffic surge or DDoS attack).
+Ensure Nginx logs are formatted to include request timestamps and status codes for accurate QPS calculation.
+
+Issues with the Infrastructure
+
+Why Terminating SSL at the Load Balancer Level Is an Issue:Security Risk: Terminating SSL at the load balancer means traffic between the load balancer and servers (backend traffic) is unencrypted. If the internal network is compromised, attackers could intercept sensitive data.
+Solution: Implement end-to-end encryption by installing SSL certificates on each server (e.g., Nginx) or configuring the load balancer to re-encrypt backend traffic (SSL passthrough or re-encryption).
+Trade-off: Backend encryption increases server load and complexity but enhances security.
+
+Why Having Only One MySQL Server Capable of Accepting Writes Is an Issue:
+Single Point of Failure: If Server 3 (the primary MySQL server) fails, write operations stop, causing downtime for features requiring database updates (e.g., user registrations).
+Performance Bottleneck: All write queries go to Server 3, which may become overloaded under high traffic, slowing down the application.
+Solution: Implement a multi-primary MySQL cluster (e.g., MySQL Group Replication) or failover mechanisms (e.g., MySQL Router) to distribute writes or enable automatic failover.
+Trade-off: Multi-primary setups increase complexity and require careful conflict resolution.
+
+Why Having Servers with All the Same Components (Database, Web Server, Application Server) Might Be a Problem:
+Resource Contention: Running web, application, and database services on the same server competes for CPU, memory, and disk resources, degrading performance under load.
+Scalability Limitations: Scaling the web layer requires scaling the database, even if only one component needs more resources, leading to inefficiency.
+Maintenance Complexity: Updating or patching one component (e.g., MySQL) risks affecting others, increasing downtime risk.
+Security Risks: A vulnerability in one component (e.g., web server) could expose the database on the same server.
+Solution: Decouple components into dedicated servers (e.g., separate database servers) or use containerization (e.g., Docker) to isolate services.
+Trade-off: Decoupling increases infrastructure complexity and costs but improves performance and scalability.
+

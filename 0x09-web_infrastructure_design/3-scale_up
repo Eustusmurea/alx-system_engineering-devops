@@ -1,0 +1,111 @@
+Infrastructure OverviewThe proposed infrastructure consists of the following components:Load Balancer (HAProxy): Two instances configured in a high-availability (HA) cluster to distribute incoming traffic across web servers.
+Web Server: A dedicated server handling HTTP/HTTPS requests and serving static content.
+Application Server: A dedicated server running the application logic and processing dynamic requests.
+Database Server: A dedicated server for data storage and management.
+Additional Element: A Monitoring Server to track the health and performance of the infrastructure.
+
+Each component is isolated on its own server to ensure modularity, scalability, and fault tolerance.Components and Rationale1. Load Balancer (HAProxy Cluster)Purpose: Distributes incoming traffic across multiple web servers to ensure load balancing, high availability, and fault tolerance.
+Why Two Instances?:High Availability: Two HAProxy instances form an active-passive or active-active cluster using a tool like Keepalived or Pacemaker to ensure that if one load balancer fails, the other takes over seamlessly.
+Traffic Distribution: HAProxy efficiently distributes traffic based on algorithms (e.g., round-robin, least connections) to optimize resource usage and reduce latency.
+Scalability: Allows adding more web servers without changing the client-facing endpoint.
+
+Configuration Details:HAProxy Setup: Configured to listen on a virtual IP (VIP) shared between the two instances for failover.
+Health Checks: HAProxy performs periodic health checks on web servers to route traffic only to healthy instances.
+Clustering: Uses Keepalived for Virtual Router Redundancy Protocol (VRRP) to manage the VIP and ensure failover between HAProxy nodes.
+Why Added?: A single load balancer is a single point of failure. A clustered setup ensures redundancy and continuous availability.
+
+2. Web ServerPurpose: Handles HTTP/HTTPS requests, serves static content (e.g., HTML, CSS, JavaScript, images), and forwards dynamic requests to the application server.
+Software: Nginx or Apache (Nginx preferred for high concurrency and low resource usage).
+Why Dedicated Server?:Performance: Separating static content delivery from application logic reduces the load on the application server, improving response times.
+Scalability: Web servers can be scaled horizontally by adding more instances behind the load balancer.
+Security: The web server acts as a reverse proxy, shielding the application server from direct exposure to the internet.
+
+Configuration Details:Configured to serve static files directly from the filesystem or a CDN.
+Proxies dynamic requests (e.g., API calls) to the application server via HTTP or a faster protocol like gRPC.
+Implements caching (e.g., Nginx caching) to reduce load on the application server for frequently accessed resources.
+
+3. Application ServerPurpose: Executes the business logic, processes dynamic requests, and communicates with the database.
+Software: Depends on the application stack (e.g., Node.js, Java with Spring Boot, Python with Django/Flask, Ruby on Rails).
+Why Dedicated Server?:Resource Isolation: Application logic often requires significant CPU and memory resources. Isolating it from the web server prevents resource contention.
+Scalability: Application servers can be scaled independently based on processing demands.
+Security: Running on a separate server allows stricter firewall rules and network segmentation, reducing the attack surface.
+
+Configuration Details:Runs the application in a containerized environment (e.g., Docker) for portability and consistency.
+Configured to handle API requests from the web server and connect to the database for data operations.
+Uses a framework-specific server (e.g., Gunicorn for Python, Tomcat for Java) optimized for the application stack.
+
+4. Database ServerPurpose: Stores and manages application data, providing persistence and query capabilities.
+Software: Relational (e.g., PostgreSQL, MySQL) or NoSQL (e.g., MongoDB, Cassandra) based on application needs.
+Why Dedicated Server?:Performance: Databases are I/O-intensive and benefit from dedicated resources (e.g., SSDs, optimized memory).
+Scalability: Allows for database-specific optimizations (e.g., replication, sharding) without impacting other components.
+Security: Isolating the database server behind a private network reduces exposure to external threats.
+
+Configuration Details:Configured with replication (e.g., master-slave or multi-master) for high availability and data redundancy.
+Secured with strict access controls (e.g., only accessible from the application server’s IP range).
+Backups and monitoring are implemented to ensure data integrity and availability.
+
+5. Additional Element: Monitoring ServerPurpose: Collects and analyzes metrics, logs, and alerts to monitor the health and performance of the infrastructure.
+Software: Prometheus for metrics collection, Grafana for visualization, and ELK Stack (Elasticsearch, Logstash, Kibana) for log aggregation.
+Why Added?:Proactive Management: Monitoring ensures early detection of issues (e.g., high latency, server downtime, resource exhaustion).
+Performance Optimization: Metrics provide insights into bottlenecks, enabling fine-tuning of the infrastructure.
+Reliability: Alerts notify administrators of critical issues, reducing downtime.
+
+Configuration Details:Prometheus scrapes metrics from all servers (e.g., CPU usage, memory, request latency).
+Grafana dashboards visualize metrics for real-time insights.
+ELK Stack aggregates logs from HAProxy, web server, application server, and database for debugging and auditing.
+Configured to send alerts (e.g., via Slack or email) for critical events like server failures or high error rates.
+
+Infrastructure Diagram
+
+[Internet]
+    |
+[HAProxy Cluster (VIP)]  <--- Keepalived for HA
+    |         |
+[HAProxy1]  [HAProxy2]
+    |
+[Web Server]
+    |
+[Application Server]
+    |
+[Database Server]
+    |
+[Monitoring Server]
+
+Network Flow:Incoming traffic hits the HAProxy cluster’s VIP.
+HAProxy forwards requests to the web server.
+The web server serves static content or proxies dynamic requests to the application server.
+The application server queries the database as needed.
+The monitoring server collects metrics and logs from all components.
+
+Specifics and JustificationsWhy Split Components Across Servers?Modularity: Each component can be optimized, scaled, and maintained independently.
+Fault Isolation: A failure in one component (e.g., database) does not directly impact others (e.g., web server).
+Security: Network segmentation (e.g., private subnets for application and database servers) enhances security.
+
+Why HAProxy for Load Balancing?HAProxy is lightweight, highly configurable, and supports advanced features like SSL termination, sticky sessions, and health checks.
+Its clustering capability ensures no single point of failure, critical for production environments.
+
+Why Nginx for Web Server? (Assuming Nginx is chosen)Nginx excels at handling high concurrency with low resource usage compared to Apache.
+Its event-driven architecture is ideal for serving static content and acting as a reverse proxy.
+
+Why Separate Application and Database Servers?Application servers are CPU/memory-intensive, while databases are I/O-intensive. Separating them prevents resource contention.
+Allows independent scaling: add more application servers for compute needs or optimize database servers for storage needs.
+
+Why Add a Monitoring Server?Centralized monitoring provides a single pane of glass for infrastructure health.
+Enables data-driven decisions for scaling, debugging, and optimization.
+
+Implementation NotesDeployment: Use a cloud provider (e.g., AWS, GCP, Azure) or on-premises servers with virtualization (e.g., VMware, Proxmox).
+Networking:Place HAProxy and web servers in a public subnet (DMZ) with public IPs.
+Place application and database servers in private subnets, accessible only via the web server or specific IPs.
+Use a VPC or VLAN for network isolation.
+
+Security:Implement firewalls (e.g., iptables, AWS Security Groups) to restrict access.
+Use TLS/SSL for all external and internal communications.
+Rotate credentials and use secrets management (e.g., HashiCorp Vault).
+
+Scalability:Web and application servers can be scaled horizontally by adding more instances.
+Database can use replication or sharding for scalability.
+
+Monitoring Setup:Install Prometheus exporters (e.g., Node Exporter, HAProxy Exporter) on each server.
+Configure Grafana to connect to Prometheus for dashboards.
+Set up ELK Stack to centralize logs from all components.
+
