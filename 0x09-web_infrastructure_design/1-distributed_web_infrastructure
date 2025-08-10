@@ -1,4 +1,6 @@
-Infrastructure Components and RationaleHAProxy Load Balancer (Server 1)  Why: The load balancer distributes incoming traffic across multiple servers to ensure scalability, reliability, and high availability. It acts as the entry point for all requests to www.foobar.com, reducing the load on individual servers and improving fault tolerance.
+Infrastructure Components 
+HAProxy Load Balancer (Server 1)  
+Why: The load balancer distributes incoming traffic across multiple servers to ensure scalability, reliability, and high availability. It acts as the entry point for all requests to www.foobar.com, reducing the load on individual servers and improving fault tolerance.
 Details: Runs on Server 1, listens on port 443 (HTTPS), and forwards requests to the web server or application server based on the request type.
 
 Nginx Web Server (Server 2)  Why: Nginx serves static content (e.g., HTML, CSS, images) efficiently and quickly. It reduces the load on the application server by handling static file requests directly.
@@ -19,18 +21,20 @@ Details: Runs on Server 3, synchronized with the primary node for data consisten
 Load Balancer ConfigurationDistribution Algorithm: Round-Robin  How it Works: HAProxy distributes incoming requests sequentially across the available servers (Nginx on Server 2 and Application Server on Server 3). For example, the first request goes to Server 2, the second to Server 3, the third back to Server 2, and so on. This ensures an even distribution of traffic, assuming servers have similar capacities.
 Why Chosen: Round-robin is simple, effective for servers with similar performance, and ensures balanced load distribution without requiring complex configuration.
 
-Setup Type: Active-Active  Explanation: In an Active-Active setup, both servers (Server 2 and Server 3) actively handle traffic simultaneously, as HAProxy distributes requests to both. This maximizes resource utilization and throughput.
+Setup Type
+Active-Active In an Active-Active setup, both servers (Server 2 and Server 3) actively handle traffic simultaneously, as HAProxy distributes requests to both. This maximizes resource utilization and throughput.
 Active-Active vs. Active-Passive:  Active-Active: All servers are operational and handle traffic concurrently, improving performance and scalability.  
 Active-Passive: One server (active) handles traffic, while the other (passive) remains on standby, only taking over if the active server fails. Active-Passive prioritizes failover but underutilizes resources.
 
-Database Primary-Replica (Master-Slave) ClusterHow it Works:  The Primary Node (Server 2) accepts write operations (e.g., INSERT, UPDATE, DELETE) and maintains the master copy of the database. It logs all changes to a binary log.  
+Database Primary-Replica (Master-Slave) Cluster:  The Primary Node (Server 2) accepts write operations (e.g., INSERT, UPDATE, DELETE) and maintains the master copy of the database. It logs all changes to a binary log.  
 The Replica Node (Server 3) subscribes to the primary node’s binary log and replays the changes to maintain an identical copy of the database. The replica handles read operations (e.g., SELECT).  
 This setup enables read scalability (read queries are offloaded to the replica) and fault tolerance (the replica can be promoted to primary if the primary fails).
 
 Primary vs. Replica in Relation to the Application:  Primary Node: The application server sends all write requests (e.g., user registrations, content updates) to the primary node. It ensures data consistency and is the source of truth for the database.  
 Replica Node: The application server sends read requests (e.g., fetching user profiles, displaying content) to the replica. This reduces the load on the primary node and improves performance for read-heavy workloads.
 
-Issues with the InfrastructureSingle Points of Failure (SPOF)  Load Balancer (Server 1): If HAProxy fails, the entire website becomes inaccessible, as it’s the only entry point for traffic.  Mitigation: Deploy a second HAProxy instance with a failover mechanism (e.g., using Keepalived for a virtual IP).
+Issues with the Infrastructure
+Single Points of Failure (SPOF)  Load Balancer (Server 1): If HAProxy fails, the entire website becomes inaccessible, as it’s the only entry point for traffic.  Mitigation: Deploy a second HAProxy instance with a failover mechanism (e.g., using Keepalived for a virtual IP).
 
 Primary Database (Server 2): If the primary MySQL node fails, write operations stop until the replica is promoted manually or automatically.  Mitigation: Implement automated failover with tools like MySQL Orchestrator.
 
